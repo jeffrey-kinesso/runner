@@ -109,7 +109,7 @@ namespace GitHub.Runner.Worker.Handlers
 
         private void InitializeScope(IStep step)
         {
-            var stepsContext = step.ExecutionContext.StepsContext;
+            var stepsContext = step.ExecutionContext.Global.StepsContext;
             var scopeName = step.ExecutionContext.ScopeName;
             step.ExecutionContext.ExpressionValues["steps"] = stepsContext.GetScope(scopeName);
         }
