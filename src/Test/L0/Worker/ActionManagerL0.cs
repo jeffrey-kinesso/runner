@@ -846,7 +846,7 @@ namespace GitHub.Runner.Common.Tests.Worker
                 {
                     var traceFile = Path.GetTempFileName();
                     File.Copy(_hc.TraceFileName, traceFile, true);
-                    Assert.Contains("Entry javascript file is not provided.", File.ReadAllText(traceFile));
+                    Assert.Contains("You are using a JavaScript Action but there is not an entry JavaScript file provided in", File.ReadAllText(traceFile));
                 }
             }
             finally
@@ -2466,7 +2466,7 @@ runs:
                 {
                     var traceFile = Path.GetTempFileName();
                     File.Copy(_hc.TraceFileName, traceFile, true);
-                    Assert.Contains("Entry javascript file is not provided.", File.ReadAllText(traceFile));
+                    Assert.Contains("You are using a JavaScript Action but there is not an entry JavaScript file provided in", File.ReadAllText(traceFile));
                 }
             }
             finally
@@ -3575,17 +3575,18 @@ runs:
             _workFolder = _hc.GetDirectory(WellKnownDirectory.Work);
 
             _ec = new Mock<IExecutionContext>();
+            _ec.Setup(x => x.Global).Returns(new GlobalContext());
             _ec.Setup(x => x.CancellationToken).Returns(_ecTokenSource.Token);
             var variables = new Dictionary<string, VariableValue>();
             if (newActionMetadata)
             {
                 variables["DistributedTask.NewActionMetadata"] = "true";
             }
-            _ec.Setup(x => x.Variables).Returns(new Variables(_hc, variables));
+            _ec.Object.Global.Variables = new Variables(_hc, variables);
             _ec.Setup(x => x.ExpressionValues).Returns(new DictionaryContextData());
             _ec.Setup(x => x.ExpressionFunctions).Returns(new List<IFunctionInfo>());
-            _ec.Setup(x => x.FileTable).Returns(new List<String>());
-            _ec.Setup(x => x.Plan).Returns(new TaskOrchestrationPlanReference());
+            _ec.Object.Global.FileTable = new List<String>();
+            _ec.Object.Global.Plan = new TaskOrchestrationPlanReference();
             _ec.Setup(x => x.Write(It.IsAny<string>(), It.IsAny<string>())).Callback((string tag, string message) => { _hc.GetTrace().Info($"[{tag}]{message}"); });
             _ec.Setup(x => x.AddIssue(It.IsAny<Issue>(), It.IsAny<string>())).Callback((Issue issue, string message) => { _hc.GetTrace().Info($"[{issue.Type}]{issue.Message ?? message}"); });
             _ec.Setup(x => x.GetGitHubContext("workspace")).Returns(Path.Combine(_workFolder, "actions", "actions"));
